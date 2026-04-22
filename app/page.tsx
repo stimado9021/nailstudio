@@ -90,7 +90,7 @@ const Modal = (({ title, onClose, children, wide = false }: any) => {
   </div>
 });
 
-const Input = ({ label, ...p }) => (
+const Input = ({ label, ...p }: any) => (
   <div style={{ marginBottom: 16 }}>
     {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#444", marginBottom: 6 }}>{label}</label>}
     <input style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #e8e4dc", borderRadius: 8, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} {...p} />
