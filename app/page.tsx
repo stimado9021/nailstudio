@@ -4,12 +4,15 @@ import { useState, useRef, useEffect } from "react";
 
 // ── icons ────────────────────────────────────────────────────────────────────
 // Cambia la línea 6 por algo como esto:
-const Icon = ({ d, size = 20, color = "currentColor", stroke = false }: any) => {
-   // ... resto del código
-}
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={stroke ? "none" : color}
-    stroke={stroke ? color : "none"} strokeWidth={stroke ? 2 : 0}>
-    <path d={d} strokeLinecap={stroke ? "round" : undefined} strokeLinejoin={stroke ? "round" : undefined} />
+const Icon = ({ d, size = 20, color = "currentColor", stroke = false }: any) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={stroke ? "none" : color}>
+    <path 
+      d={d} 
+      strokeLinecap={stroke ? "round" : undefined} 
+      strokeLinejoin={stroke ? "round" : undefined} 
+      stroke={stroke ? color : "none"} 
+      strokeWidth={stroke ? 2 : 0} 
+    />
   </svg>
 );
 const icons = {
