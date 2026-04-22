@@ -64,7 +64,7 @@ const initialCampaigns = [
 ];
 
 // ── UI helpers ───────────────────────────────────────────────────────────────
-const statusBadge = (s) => {
+const statusBadge = (s: any) => {
   const cfg = {
     sent: { bg: "#dcfce7", color: "#166534", label: "Enviada" },
     draft: { bg: "#f1f5f9", color: "#475569", label: "Borrador" },
