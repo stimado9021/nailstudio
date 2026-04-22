@@ -76,7 +76,7 @@ const statusBadge = (s: any) => {
   return <span style={{ background: c.bg, color: c.color, padding: "2px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{c.label}</span>;
 };
 
-const Modal = ({ title, onClose, children, wide }) => (
+const Modal = ({ title, onClose, children, wide = false }: any) => {
   <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
     <div style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: wide ? 800 : 560, maxHeight: "90vh", overflow: "auto", boxShadow: "0 25px 60px rgba(0,0,0,0.2)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid #e8e4dc" }}>
