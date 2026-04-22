@@ -72,7 +72,7 @@ const statusBadge = (s: any) => {
     sending: { bg: "#dbeafe", color: "#1e40af", label: "Enviando..." },
     error: { bg: "#fee2e2", color: "#991b1b", label: "Error" },
   };
-  const c = cfg[s] || cfg.draft;
+  const c = (cfg as any)[s] || cfg.draft;
   return <span style={{ background: c.bg, color: c.color, padding: "2px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{c.label}</span>;
 };
 
