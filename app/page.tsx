@@ -8,7 +8,7 @@ interface Template { id: number; name: string; category: string; preview: string
 interface BrevoList { id: number; name: string; uniqueSubscribers: number; }
 interface LocalContact { id: number; name: string; email: string; list: string; status: string; }
 
-const icons: Record<string, string> = {
+const icons: any = {
   mail:     "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
   chart:    "M18 20V10M12 20V4M6 20v-6",
   send:     "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z",
@@ -773,14 +773,40 @@ export default function App() {
           </div>
           <p style={{ color: "#555", fontSize: 10, margin: 0, letterSpacing: 2, fontFamily: "monospace" }}>EMAIL MARKETING</p>
         </div>
-        <nav style={{ flex: 1, padding: "8px 12px" }}>
-          {nav.map(n => (
-            <button key={n.id} onClick={() => setPage(n.id)} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: page === n.id ? 700 : 400, fontFamily: "inherit", textAlign: "left", marginBottom: 3, background: page === n.id ? "rgba(245,240,232,0.13)" : "transparent", color: page === n.id ? "#f5f0e8" : "#777" }}>
-              <Icon d={icons[n.icon]} size={16} stroke color={page === n.id ? "#f5f0e8" : "#555"} />
-              {n.label}
-            </button>
-          ))}
-        </nav>
+      {/* Busca la parte de nav en el Sidebar */}
+<nav style={{ flex: 1, padding: "8px 12px" }}>
+  {[
+    { id: "campaigns", label: "Campañas", icon: "mail" },
+    { id: "customers", label: "Clientes", icon: "users" },
+    { id: "settings", label: "Configuración", icon: "settings" },
+  ].map((n: any) => ( // <--- Añadimos : any aquí
+    <button 
+      key={n.id}
+      onClick={() => setPage(n.id)}
+      style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        gap: 10, 
+        width: "100%", 
+        padding: "10px 12px", 
+        borderRadius: 8, 
+        border: "none", 
+        cursor: "pointer", 
+        fontSize: 14, 
+        fontWeight: page === n.id ? 700 : 400, 
+        fontFamily: "inherit", 
+        textAlign: "left", 
+        marginBottom: 2, 
+        background: page === n.id ? "rgba(245,240,232,0.12)" : "transparent", 
+        color: page === n.id ? "#f5f0e8" : "#888" 
+      }}
+    >
+      {/* Aquí es donde estaba el error del indexado */}
+      <Icon d={(icons as any)[n.icon]} size={16} stroke color={page === n.id ? "#f5f0e8" : "#666"} />
+      {n.label}
+    </button>
+  ))}
+</nav>
         <div style={{ padding: "16px 20px", borderTop: "1px solid #222" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: config.senderEmail ? "#4ade80" : "#f87171", flexShrink: 0 }} />
