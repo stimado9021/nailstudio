@@ -1,17 +1,16 @@
-// app/api/test-brevo/route.js
-// Verifica que la API Key sea válida
+// app/api/test-brevo/route.ts
 
 export async function GET() {
   try {
-    const BREVO_API_KEY = process.env.BREVO_API_KEY;
+    const API_KEY = process.env.BREVO_API_KEY;
 
-    if (!BREVO_API_KEY) {
-      return Response.json({ error: "API Key no encontrada en .env.local" }, { status: 400 });
+    if (!API_KEY) {
+      return Response.json({ error: "BREVO_API_KEY no encontrada en variables de entorno" }, { status: 400 });
     }
 
     const res = await fetch("https://api.brevo.com/v3/account", {
       headers: {
-        "api-key": BREVO_API_KEY,
+        "api-key": API_KEY,
         "Accept": "application/json",
       },
     });
@@ -28,11 +27,12 @@ export async function GET() {
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
-        plan: data.plan?.[0]?.type || "unknown",
+        plan: data.plan?.[0]?.type || "free",
       },
     });
 
-  } catch (err) {
-    return Response.json({ error: "No se pudo conectar con Brevo", details: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Error desconocido";
+    return Response.json({ error: "No se pudo conectar con Brevo", details: message }, { status: 500 });
   }
 }

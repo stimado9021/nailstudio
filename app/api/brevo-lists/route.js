@@ -1,17 +1,16 @@
-// app/api/brevo-lists/route.js
-// Obtiene las listas de contactos reales de tu cuenta Brevo
+// app/api/test-brevo/route.ts
 
 export async function GET() {
   try {
-    const BREVO_API_KEY = process.env.BREVO_API_KEY;
+    const API_KEY = process.env.BREVO_API_KEY;
 
-    if (!BREVO_API_KEY) {
-      return Response.json({ error: "API Key de Brevo no configurada" }, { status: 500 });
+    if (!API_KEY) {
+      return Response.json({ error: "BREVO_API_KEY no encontrada en variables de entorno" }, { status: 400 });
     }
 
-    const res = await fetch("https://api.brevo.com/v3/contacts/lists?limit=50&offset=0", {
+    const res = await fetch("https://api.brevo.com/v3/account", {
       headers: {
-        "api-key": BREVO_API_KEY,
+        "api-key": API_KEY,
         "Accept": "application/json",
       },
     });
@@ -19,16 +18,21 @@ export async function GET() {
     const data = await res.json();
 
     if (!res.ok) {
-      return Response.json({ error: data.message || "Error al obtener listas" }, { status: res.status });
+      return Response.json({ error: "API Key inválida", details: data }, { status: 401 });
     }
 
     return Response.json({
       success: true,
-      lists: data.lists || [],
-      count: data.count,
+      account: {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        plan: data.plan?.[0]?.type || "free",
+      },
     });
 
-  } catch (err) {
-    return Response.json({ error: "Error interno", details: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Error desconocido";
+    return Response.json({ error: "No se pudo conectar con Brevo", details: message }, { status: 500 });
   }
 }

@@ -1,38 +1,35 @@
-// app/api/send-campaign/route.js
-// Envía una campaña real usando la API de Brevo
+// app/api/send-campaign/route.ts
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { subject, senderName, senderEmail, listId, templateHtml, preheader, campaignName } = body;
 
-    const BREVO_API_KEY = process.env.BREVO_API_KEY;
+    const API_KEY = process.env.BREVO_API_KEY;
 
-    if (!BREVO_API_KEY) {
-      return Response.json({ error: "API Key de Brevo no configurada" }, { status: 500 });
+    if (!API_KEY) {
+      return Response.json({ error: "BREVO_API_KEY no configurada" }, { status: 500 });
+    }
+    if (!senderEmail || !senderName || !subject || !listId || !templateHtml) {
+      return Response.json({ error: "Faltan campos requeridos: senderEmail, senderName, subject, listId, templateHtml" }, { status: 400 });
     }
 
-    // 1. Crear la campaña en Brevo
+    // ── 1. Crear campaña ─────────────────────────────────────────────────────
     const campaignRes = await fetch("https://api.brevo.com/v3/emailCampaigns", {
       method: "POST",
       headers: {
-        "api-key": BREVO_API_KEY,
+        "api-key": API_KEY,
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
       body: JSON.stringify({
         name: campaignName,
-        subject: subject,
+        subject,
         previewText: preheader || "",
-        sender: {
-          name: senderName,
-          email: senderEmail,
-        },
+        sender: { name: senderName, email: senderEmail },
         type: "classic",
         htmlContent: templateHtml,
-        recipients: {
-          listIds: [Number(listId)],
-        },
+        recipients: { listIds: [Number(listId)] },
       }),
     });
 
@@ -45,13 +42,13 @@ export async function POST(request) {
       }, { status: campaignRes.status });
     }
 
-    const createdCampaignId = campaignData.id;
+    const campaignId: number = campaignData.id;
 
-    // 2. Enviar la campaña inmediatamente
-    const sendRes = await fetch(`https://api.brevo.com/v3/emailCampaigns/${createdCampaignId}/sendNow`, {
+    // ── 2. Enviar ahora ──────────────────────────────────────────────────────
+    const sendRes = await fetch(`https://api.brevo.com/v3/emailCampaigns/${campaignId}/sendNow`, {
       method: "POST",
       headers: {
-        "api-key": BREVO_API_KEY,
+        "api-key": API_KEY,
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
@@ -60,19 +57,20 @@ export async function POST(request) {
     if (!sendRes.ok) {
       const sendErr = await sendRes.json();
       return Response.json({
-        error: "Campaña creada pero no se pudo enviar",
-        campaignId: createdCampaignId,
+        error: "Campaña creada en Brevo pero no se pudo enviar",
+        campaignId,
         details: sendErr,
       }, { status: sendRes.status });
     }
 
     return Response.json({
       success: true,
-      campaignId: createdCampaignId,
-      message: "Campaña enviada correctamente a través de Brevo",
+      campaignId,
+      message: `Campaña enviada correctamente (ID Brevo: ${campaignId})`,
     });
 
-  } catch (err) {
-    return Response.json({ error: "Error interno del servidor", details: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Error desconocido";
+    return Response.json({ error: "Error interno", details: message }, { status: 500 });
   }
 }
