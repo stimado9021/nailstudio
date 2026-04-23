@@ -89,7 +89,9 @@ const Toast = ({ msg, ok, onClose }: { msg: string; ok: boolean; onClose: () => 
 );
 
 // ── CONTACTS ──────────────────────────────────────────────────────────────────
+declare const XLSX: any; // SheetJS cargado desde CDN en layout.tsx
 function Contacts({ toast }: { toast: (msg: string, ok?: boolean) => void }) {
+  
   const [contacts, setContacts] = useState<LocalContact[]>([
     { id: 1, name: "Ana García",   email: "ana@ejemplo.com",    list: "Clientes VIP", status: "local" },
     { id: 2, name: "Carlos López", email: "carlos@ejemplo.com", list: "Newsletter",   status: "local" },
