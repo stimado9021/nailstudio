@@ -61,6 +61,7 @@ export const inputStyle: CSSProperties = {
   boxSizing: "border-box",
   fontFamily: "inherit",
   background: "#fff",
+  color: "#1a1a1a",
 };
 
 // ── Field: label + input wrapper ──────────────────────────────────────────────

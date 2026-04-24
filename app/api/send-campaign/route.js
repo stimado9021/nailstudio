@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       message: `Campaña enviada correctamente (ID Brevo: ${campaignId})`,
     });
 
-  } catch (err: unknown) {
+catch (err)
     const message = err instanceof Error ? err.message : "Error desconocido";
     return Response.json({ error: "Error interno", details: message }, { status: 500 });
   }

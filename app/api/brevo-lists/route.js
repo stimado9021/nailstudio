@@ -31,8 +31,9 @@ export async function GET() {
       },
     });
 
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Error desconocido";
+} catch (err) {
+   // ✅
+const message = err && err.message ? err.message : "Error desconocido";
     return Response.json({ error: "No se pudo conectar con Brevo", details: message }, { status: 500 });
   }
 }
