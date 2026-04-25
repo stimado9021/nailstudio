@@ -2,7 +2,7 @@
 // app/components/Campaigns.tsx
 // Recibe brevoLists desde page.tsx (listas creadas en Contacts)
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Campaign, Config, BrevoList, EmailTemplate } from "./types";
 import { emailTemplates } from "./emailTemplates";
 import { Btn, Field, Modal, Icon, icons, inputStyle, statusBadge } from "./ui";
@@ -32,18 +32,31 @@ export default function Campaigns({
     ...remoteLists.filter(r => !brevoLists.find(b => b.id === r.id)),
   ];
 
+  // Cargar listas de Brevo al montar el componente
+  useEffect(() => {
+    loadBrevoLists();
+  }, []);
+
+  const loadBrevoLists = async () => {
+    setLoadingLists(true);
+    try {
+      const res  = await fetch("/api/brevo-lists");
+      const data = await res.json();
+      if (data.success && data.lists?.length) setRemoteLists(data.lists);
+    } catch {}
+    setLoadingLists(false);
+  };
+
+  // Carga listas SIEMPRE al abrir modal
   const openNew = async () => {
     setShowNew(true);
-    // Si no hay listas locales, consulta Brevo directamente
-    if (brevoLists.length === 0) {
-      setLoadingLists(true);
-      try {
-        const res  = await fetch("/api/brevo-lists");
-        const data = await res.json();
-        if (data.success && data.lists?.length) setRemoteLists(data.lists);
-      } catch {}
-      setLoadingLists(false);
-    }
+    setLoadingLists(true);
+    try {
+      const res  = await fetch("/api/brevo-lists");
+      const data = await res.json();
+      if (data.success && data.lists?.length) setRemoteLists(data.lists);
+    } catch {}
+    setLoadingLists(false);
   };
 
   const handleCreate = () => {
@@ -116,21 +129,22 @@ export default function Campaigns({
         <Btn icon="plus" onClick={openNew}>Nueva campaña</Btn>
       </div>
 
-      {/* Aviso si no hay listas */}
-      {brevoLists.length === 0 && (
-        <div style={{ background: "#fffbeb", border: "1px solid #fef08a", borderRadius: 10, padding: "14px 20px", marginBottom: 24 }}>
-          <p style={{ margin: 0, color: "#854d0e", fontSize: 14 }}>
-            📋 <strong>Paso previo:</strong> Ve a <strong>Contactos → Subir a Brevo</strong> para crear una lista con tus contactos. Luego vuelve aquí a crear la campaña.
-          </p>
+      {/* Estado de listas */}
+      {loadingLists ? (
+        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "14px 20px", marginBottom: 24 }}>
+          <p style={{ margin: 0, color: "#0369a1", fontSize: 14 }}>⏳ Cargando listas desde Brevo...</p>
         </div>
-      )}
-
-      {/* Listas disponibles */}
-      {brevoLists.length > 0 && (
+      ) : allLists.length > 0 ? (
         <div style={{ background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: 10, padding: "14px 20px", marginBottom: 24 }}>
           <p style={{ margin: 0, color: "#166534", fontSize: 14, fontWeight: 600 }}>
-            ✅ {brevoLists.length} lista{brevoLists.length > 1 ? "s" : ""} disponible{brevoLists.length > 1 ? "s" : ""} en Brevo:
-            {" "}{brevoLists.map(l => `${l.name} (ID: ${l.id})`).join(" · ")}
+            ✅ {allLists.length} lista{allLists.length > 1 ? "s" : ""} disponible{allLists.length > 1 ? "s" : ""} en Brevo:
+            {" "}{allLists.map(l => `${l.name} (ID: ${l.id})`).join(" · ")}
+          </p>
+        </div>
+      ) : (
+        <div style={{ background: "#fffbeb", border: "1px solid #fef08a", borderRadius: 10, padding: "14px 20px", marginBottom: 24 }}>
+          <p style={{ margin: 0, color: "#854d0e", fontSize: 14 }}>
+            📋 <strong>Paso previo:</strong> Ve a <strong>Contactos → Subir a Brevo</strong> para crear una lista. Una vez subidos, las listas aparecen aquí automáticamente.
           </p>
         </div>
       )}

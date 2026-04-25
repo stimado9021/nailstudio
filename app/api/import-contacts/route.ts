@@ -1,16 +1,16 @@
-// app/api/import-contacts/route.ts
-// 1. Guarda contactos en Supabase
-// 2. Crea lista en Brevo e importa contactos
-// 3. Actualiza estado en Supabase con el brevo_list_id
+// app/api/import-contacts/route.js
+// Guarda contactos en Supabase + crea lista en Brevo + importa contactos
 
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
 
-export async function POST(request: Request) {
+export async function POST(request) {
   try {
     const { listName, contacts } = await request.json();
     const API_KEY = process.env.BREVO_API_KEY;
@@ -18,12 +18,14 @@ export async function POST(request: Request) {
     if (!API_KEY) {
       return Response.json({ error: "BREVO_API_KEY no configurada" }, { status: 500 });
     }
-    if (!listName || !contacts?.length) {
+    if (!listName || !contacts || contacts.length === 0) {
       return Response.json({ error: "Nombre de lista y contactos son requeridos" }, { status: 400 });
     }
 
+    const supabase = getSupabase();
+
     // ── 1. Guardar contactos en Supabase ─────────────────────────────────────
-    const contactsToInsert = contacts.map((c: { name: string; email: string; list: string }) => ({
+    const contactsToInsert = contacts.map(c => ({
       name:      c.name,
       email:     c.email,
       list_name: listName,
@@ -32,11 +34,10 @@ export async function POST(request: Request) {
 
     const { error: insertError } = await supabase
       .from("contacts")
-      .upsert(contactsToInsert, { onConflict: "email" });
+      .insert(contactsToInsert);
 
     if (insertError) {
-      console.error("Supabase insert error:", insertError);
-      // No bloqueamos el flujo — igual intentamos subir a Brevo
+      console.error("Supabase insert error:", insertError.message);
     }
 
     // ── 2. Crear lista en Brevo ───────────────────────────────────────────────
@@ -54,11 +55,11 @@ export async function POST(request: Request) {
 
     if (!listRes.ok) {
       return Response.json({
-        error: `Error creando lista en Brevo: ${listData.message || "Error desconocido"}`,
+        error: "Error creando lista en Brevo: " + (listData.message || "Error desconocido"),
       }, { status: listRes.status });
     }
 
-    const listId: number = listData.id;
+    const listId = listData.id;
 
     // ── 3. Importar contactos a Brevo en lotes de 150 ────────────────────────
     const BATCH = 150;
@@ -77,11 +78,11 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           listIds: [listId],
           updateEnabled: true,
-          jsonBody: batch.map((c: { name: string; email: string }) => ({
+          jsonBody: batch.map(c => ({
             email: c.email,
             attributes: {
-              FIRSTNAME: c.name?.split(" ")[0] || "",
-              LASTNAME:  c.name?.split(" ").slice(1).join(" ") || "",
+              FIRSTNAME: c.name ? c.name.split(" ")[0] : "",
+              LASTNAME:  c.name ? c.name.split(" ").slice(1).join(" ") : "",
             },
           })),
         }),
@@ -90,13 +91,13 @@ export async function POST(request: Request) {
       if (importRes.ok) imported += batch.length;
     }
 
-    // ── 4. Actualizar estado en Supabase con brevo_list_id ───────────────────
+    // ── 4. Actualizar estado en Supabase ─────────────────────────────────────
     await supabase
       .from("contacts")
       .update({ status: "synced", brevo_list_id: listId })
       .eq("list_name", listName);
 
-    // ── 5. Guardar la lista de Brevo en Supabase ─────────────────────────────
+    // ── 5. Guardar lista en Supabase ──────────────────────────────────────────
     await supabase
       .from("brevo_lists")
       .upsert({ id: listId, name: listName, unique_subscribers: imported });
@@ -110,7 +111,7 @@ export async function POST(request: Request) {
     });
 
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Error desconocido";
+    const message = err && err.message ? err.message : "Error desconocido";
     return Response.json({ error: "Error interno del servidor", details: message }, { status: 500 });
   }
 }

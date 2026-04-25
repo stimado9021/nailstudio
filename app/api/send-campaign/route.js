@@ -1,6 +1,6 @@
-// app/api/send-campaign/route.ts
+// app/api/send-campaign/route.js
 
-export async function POST(request: Request) {
+export async function POST(request) {
   try {
     const body = await request.json();
     const { subject, senderName, senderEmail, listId, templateHtml, preheader, campaignName } = body;
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "Faltan campos requeridos: senderEmail, senderName, subject, listId, templateHtml" }, { status: 400 });
     }
 
-    // ── 1. Crear campaña ─────────────────────────────────────────────────────
+    // ── 1. Crear campaña en Brevo ─────────────────────────────────────────────
     const campaignRes = await fetch("https://api.brevo.com/v3/emailCampaigns", {
       method: "POST",
       headers: {
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         name: campaignName,
-        subject,
+        subject: subject,
         previewText: preheader || "",
         sender: { name: senderName, email: senderEmail },
         type: "classic",
@@ -42,9 +42,9 @@ export async function POST(request: Request) {
       }, { status: campaignRes.status });
     }
 
-    const campaignId: number = campaignData.id;
+    const campaignId = campaignData.id;
 
-    // ── 2. Enviar ahora ──────────────────────────────────────────────────────
+    // ── 2. Enviar ahora ───────────────────────────────────────────────────────
     const sendRes = await fetch(`https://api.brevo.com/v3/emailCampaigns/${campaignId}/sendNow`, {
       method: "POST",
       headers: {
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     if (!sendRes.ok) {
       const sendErr = await sendRes.json();
       return Response.json({
-        error: "Campaña creada en Brevo pero no se pudo enviar",
+        error: "Campaña creada pero no se pudo enviar",
         campaignId,
         details: sendErr,
       }, { status: sendRes.status });
@@ -66,11 +66,11 @@ export async function POST(request: Request) {
     return Response.json({
       success: true,
       campaignId,
-      message: `Campaña enviada correctamente (ID Brevo: ${campaignId})`,
+      message: "Campaña enviada correctamente a través de Brevo",
     });
 
-catch (err)
-    const message = err instanceof Error ? err.message : "Error desconocido";
+  } catch (err) {
+    const message = err && err.message ? err.message : "Error desconocido";
     return Response.json({ error: "Error interno", details: message }, { status: 500 });
   }
 }
