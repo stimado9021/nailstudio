@@ -14,6 +14,7 @@ export interface Campaign {
   listId?: string;
   listName?: string;
   templateId?: string;
+  customHtml?: string;
   brevoId?: number | null;
 }
 

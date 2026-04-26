@@ -24,7 +24,14 @@ export default function Campaigns({
   const [showPrev, setShowPrev]         = useState<EmailTemplate | null>(null);
   const [loadingLists, setLoadingLists] = useState(false);
   const [remoteLists, setRemoteLists]   = useState<BrevoList[]>([]);
-  const [form, setForm] = useState({ name: "", subject: "", preheader: "", listId: "", templateId: "1" });
+  const [form, setForm] = useState({ 
+    name: "", 
+    subject: "", 
+    preheader: "", 
+    listId: "", 
+    templateId: "1",
+    customHtml: "" // Nuevo campo para HTML manual
+  });
 
   // Combina las listas locales (creadas en esta sesión) con las remotas de Brevo
   const allLists = [
@@ -72,7 +79,7 @@ export default function Campaigns({
       listName,
     }]);
     setShowNew(false);
-    setForm({ name: "", subject: "", preheader: "", listId: "", templateId: "1" });
+    setForm({ name: "", subject: "", preheader: "", listId: "", templateId: "1", customHtml: "" });
   };
 
   const handleSend = async (camp: Campaign) => {
@@ -82,7 +89,20 @@ export default function Campaigns({
     if (!camp.listId) {
       toast("⚠️ Esta campaña no tiene lista de Brevo asignada", false); return;
     }
-    const tmpl = emailTemplates.find(t => String(t.id) === String(camp.templateId)) ?? emailTemplates[0];
+
+    // Si es personalizado usamos el HTML guardado, si no, lo buscamos en las plantillas
+    let htmlToSend = "";
+    if (camp.templateId === "custom") {
+      htmlToSend = camp.customHtml;
+    } else {
+      const tmpl = emailTemplates.find(t => String(t.id) === String(camp.templateId)) ?? emailTemplates[0];
+      htmlToSend = tmpl.html;
+    }
+
+    if (!htmlToSend) {
+      toast("⚠️ El contenido del correo está vacío", false); return;
+    }
+
     setCampaigns(p => p.map(c => c.id === camp.id ? { ...c, status: "sending" } : c));
 
     try {
@@ -96,7 +116,7 @@ export default function Campaigns({
           senderName:   config.senderName,
           senderEmail:  config.senderEmail,
           listId:       camp.listId,
-          templateHtml: tmpl.html,
+          templateHtml: htmlToSend,
         }),
       });
       const data = await res.json();
@@ -245,15 +265,27 @@ export default function Campaigns({
 
           <Field label="Plantilla de diseño">
             <select value={form.templateId} onChange={e => setForm(p => ({ ...p, templateId: e.target.value }))} style={inputStyle}>
+              <option value="custom">✨ HTML Personalizado (Pegar código)</option>
               {emailTemplates.map(t => <option key={t.id} value={String(t.id)}>{t.name} — {t.category}</option>)}
             </select>
           </Field>
 
-          {/* Mini preview */}
-          <div style={{ border: "1px solid #e8e4dc", borderRadius: 10, overflow: "hidden", marginBottom: 20, height: 150, position: "relative", background: "#f8f6f2" }}>
-            <div style={{ transform: "scale(0.25)", transformOrigin: "top center", width: 600, position: "absolute", top: 0, left: "50%", marginLeft: -300 }}
-              dangerouslySetInnerHTML={{ __html: currentTemplate.html }} />
-          </div>
+          {form.templateId === "custom" ? (
+            <Field label="Pega tu código HTML aquí" note="Usa {{nombre}} para el nombre y {{email}} para el correo.">
+              <textarea 
+                value={form.customHtml} 
+                onChange={e => setForm(p => ({ ...p, customHtml: e.target.value }))} 
+                placeholder="<html><body><h1>Hola {{nombre}}</h1>...</body></html>" 
+                style={{ ...inputStyle, height: 200, fontFamily: "monospace", fontSize: 13 }}
+              />
+            </Field>
+          ) : (
+            /* Mini preview solo para plantillas predefinidas */
+            <div style={{ border: "1px solid #e8e4dc", borderRadius: 10, overflow: "hidden", marginBottom: 20, height: 150, position: "relative", background: "#f8f6f2" }}>
+              <div style={{ transform: "scale(0.25)", transformOrigin: "top center", width: 600, position: "absolute", top: 0, left: "50%", marginLeft: -300 }}
+                dangerouslySetInnerHTML={{ __html: currentTemplate.html }} />
+            </div>
+          )}
 
           <div style={{ background: config.senderEmail ? "#f0f9ff" : "#fffbeb", border: `1px solid ${config.senderEmail ? "#bae6fd" : "#fef08a"}`, borderRadius: 8, padding: 12, marginBottom: 20 }}>
             <p style={{ margin: 0, fontSize: 13, color: config.senderEmail ? "#0369a1" : "#854d0e" }}>

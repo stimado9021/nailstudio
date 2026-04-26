@@ -14,7 +14,13 @@ export async function POST(request) {
       return Response.json({ error: "Faltan campos requeridos: senderEmail, senderName, subject, listId, templateHtml" }, { status: 400 });
     }
 
-    // ── 1. Crear campaña en Brevo ─────────────────────────────────────────────
+    // ── 1. Preparar el HTML con variables de Brevo ─────────────────────────────
+    // Traducimos tus etiquetas simples al formato de atributos de Brevo
+    let finalHtml = templateHtml
+      .replace(/{{nombre}}/g, "{{ contact.FIRSTNAME }}")
+      .replace(/{{email}}/g, "{{ contact.EMAIL }}");
+
+    // ── 2. Crear campaña en Brevo ─────────────────────────────────────────────
     const campaignRes = await fetch("https://api.brevo.com/v3/emailCampaigns", {
       method: "POST",
       headers: {
@@ -28,7 +34,7 @@ export async function POST(request) {
         previewText: preheader || "",
         sender: { name: senderName, email: senderEmail },
         type: "classic",
-        htmlContent: templateHtml,
+        htmlContent: finalHtml,
         recipients: { listIds: [Number(listId)] },
       }),
     });
