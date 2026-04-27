@@ -53,16 +53,37 @@ export function Icon({
 // ── Estilos base compartidos ──────────────────────────────────────────────────
 export const inputStyle: CSSProperties = {
   width: "100%",
-  padding: "10px 14px",
-  border: "1.5px solid #e8e4dc",
-  borderRadius: 8,
+  padding: "12px 16px",
+  border: "1.5px solid rgba(197, 160, 115, 0.2)",
+  borderRadius: 12,
   fontSize: 14,
   outline: "none",
   boxSizing: "border-box",
-  fontFamily: "inherit",
-  background: "#fff",
+  fontFamily: "var(--font-outfit), sans-serif",
+  background: "rgba(255, 255, 255, 0.5)",
+  backdropFilter: "blur(4px)",
   color: "#1a1a1a",
+  transition: "all 0.2s",
 };
+
+// ── Card Component ────────────────────────────────────────────────────────────
+export function Card({ children, style, padding = 24 }: { children: ReactNode; style?: CSSProperties; padding?: number }) {
+  return (
+    <div
+      style={{
+        background: "rgba(255, 255, 255, 0.7)",
+        backdropFilter: "blur(12px)",
+        border: "1px solid rgba(197, 160, 115, 0.1)",
+        borderRadius: 20,
+        padding: padding,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.03)",
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 // ── Field: label + input wrapper ──────────────────────────────────────────────
 export function Field({
@@ -75,21 +96,23 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: 18 }}>
+    <div style={{ marginBottom: 20 }}>
       <label
         style={{
           display: "block",
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: 600,
-          color: "#333",
-          marginBottom: 6,
+          color: "#C5A073",
+          textTransform: "uppercase",
+          letterSpacing: 1,
+          marginBottom: 8,
         }}
       >
         {label}
       </label>
       {children}
       {note && (
-        <p style={{ margin: "5px 0 0", fontSize: 11, color: "#aaa" }}>{note}</p>
+        <p style={{ margin: "6px 0 0", fontSize: 11, color: "#999", fontStyle: "italic" }}>{note}</p>
       )}
     </div>
   );
@@ -106,7 +129,7 @@ export function Btn({
   full,
 }: {
   children: ReactNode;
-  variant?: "primary" | "ghost" | "danger" | "success";
+  variant?: "primary" | "ghost" | "danger" | "success" | "accent";
   onClick?: () => void;
   small?: boolean;
   icon?: string;
@@ -114,8 +137,9 @@ export function Btn({
   full?: boolean;
 }) {
   const v: Record<string, CSSProperties> = {
-    primary: { background: disabled ? "#ccc" : "#1a1a1a", color: "#f5f0e8", border: "none" },
-    ghost:   { background: "transparent", color: "#555", border: "1.5px solid #e8e4dc" },
+    primary: { background: disabled ? "#ccc" : "#1a1a1a", color: "#FBF8F3", border: "none" },
+    accent:  { background: disabled ? "#e8e4dc" : "#C5A073", color: "#fff", border: "none" },
+    ghost:   { background: "transparent", color: "#1a1a1a", border: "1.5px solid rgba(197, 160, 115, 0.3)" },
     danger:  { background: "#fee2e2", color: "#991b1b", border: "none" },
     success: { background: "#166534", color: "#fff", border: "none" },
   };
@@ -125,18 +149,26 @@ export function Btn({
       disabled={disabled}
       style={{
         ...(v[variant] ?? v.primary),
-        padding: small ? "7px 14px" : "10px 22px",
-        borderRadius: 8,
+        padding: small ? "8px 16px" : "12px 28px",
+        borderRadius: 12,
         cursor: disabled ? "not-allowed" : "pointer",
         fontSize: small ? 12 : 14,
         fontWeight: 600,
         display: "inline-flex",
         alignItems: "center",
-        gap: 6,
-        fontFamily: "inherit",
+        gap: 8,
+        fontFamily: "var(--font-outfit), sans-serif",
         opacity: disabled ? 0.65 : 1,
         width: full ? "100%" : undefined,
         justifyContent: full ? "center" : undefined,
+        transition: "all 0.2s",
+        boxShadow: variant === "primary" ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.transform = "translateY(-1px)";
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) e.currentTarget.style.transform = "translateY(0)";
       }}
     >
       {icon && <Icon d={icons[icon]} size={small ? 14 : 16} stroke />}
@@ -162,7 +194,8 @@ export function Modal({
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.55)",
+        background: "rgba(26,26,26,0.4)",
+        backdropFilter: "blur(8px)",
         zIndex: 1000,
         display: "flex",
         alignItems: "center",
@@ -173,12 +206,13 @@ export function Modal({
       <div
         style={{
           background: "#fff",
-          borderRadius: 16,
+          borderRadius: 24,
           width: "100%",
           maxWidth: wide ? 820 : 560,
           maxHeight: "92vh",
           overflow: "auto",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
+          boxShadow: "0 40px 100px rgba(0,0,0,0.2)",
+          border: "1px solid rgba(197, 160, 115, 0.1)",
         }}
       >
         <div
@@ -186,20 +220,22 @@ export function Modal({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: "20px 24px",
-            borderBottom: "1px solid #e8e4dc",
+            padding: "24px 32px",
+            borderBottom: "1px solid rgba(197, 160, 115, 0.05)",
             position: "sticky",
             top: 0,
-            background: "#fff",
+            background: "rgba(255,255,255,0.9)",
+            backdropFilter: "blur(10px)",
             zIndex: 1,
           }}
         >
           <h3
             style={{
               margin: 0,
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: 700,
-              fontFamily: "Georgia, serif",
+              fontFamily: "var(--font-playfair), serif",
+              color: "#1a1a1a",
             }}
           >
             {title}
@@ -207,17 +243,19 @@ export function Modal({
           <button
             onClick={onClose}
             style={{
-              background: "none",
+              background: "rgba(0,0,0,0.05)",
               border: "none",
               cursor: "pointer",
               color: "#888",
-              padding: 4,
+              padding: 8,
+              borderRadius: "50%",
+              display: "flex",
             }}
           >
-            <Icon d={icons.x} size={20} stroke />
+            <Icon d={icons.x} size={18} stroke />
           </button>
         </div>
-        <div style={{ padding: 24 }}>{children}</div>
+        <div style={{ padding: "32px" }}>{children}</div>
       </div>
     </div>
   );
@@ -237,36 +275,44 @@ export function Toast({
     <div
       style={{
         position: "fixed",
-        top: 24,
-        right: 24,
+        bottom: 32,
+        right: 32,
         zIndex: 3000,
-        background: ok ? "#166534" : "#991b1b",
+        background: ok ? "rgba(22, 101, 52, 0.9)" : "rgba(153, 27, 27, 0.9)",
+        backdropFilter: "blur(12px)",
         color: "#fff",
-        padding: "14px 20px",
-        borderRadius: 10,
+        padding: "16px 24px",
+        borderRadius: 16,
         fontSize: 14,
         fontWeight: 600,
-        maxWidth: 440,
-        boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+        maxWidth: 400,
+        boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
         display: "flex",
-        alignItems: "flex-start",
+        alignItems: "center",
         gap: 12,
+        animation: "slideUp 0.3s ease-out",
       }}
     >
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
       <span style={{ flex: 1 }}>{msg}</span>
       <button
         onClick={onClose}
         style={{
-          background: "none",
+          background: "rgba(255,255,255,0.2)",
           border: "none",
-          color: "rgba(255,255,255,0.7)",
+          color: "#fff",
           cursor: "pointer",
-          padding: 0,
-          fontSize: 18,
-          lineHeight: 1,
+          padding: "4px 8px",
+          borderRadius: 8,
+          fontSize: 12,
         }}
       >
-        ×
+        Cerrar
       </button>
     </div>
   );
@@ -286,10 +332,12 @@ export function statusBadge(s: string) {
       style={{
         background: c.bg,
         color: c.color,
-        padding: "2px 10px",
-        borderRadius: 20,
-        fontSize: 12,
-        fontWeight: 600,
+        padding: "4px 12px",
+        borderRadius: 30,
+        fontSize: 11,
+        fontWeight: 700,
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
       }}
     >
       {c.label}

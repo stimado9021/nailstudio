@@ -4,10 +4,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Permite que Vercel compile aunque haya warnings de ESLint
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 };
 
 module.exports = nextConfig;
